@@ -20,6 +20,10 @@ This setup allows you to integrate and access BFL's API directly from within you
   2. **Text File Method**
      - Alternatively, insert your API key into a file named `bfl_api_key.txt`.
      - Ensure that the `bfl_api_key.txt` file is placed in the same directory as `bfl_api.py`.
+    
+  3. **Comfy Desktop Method**
+     - Open the Instance and select `Startup args`
+     - Add a new environment variable like in Method 1
 
 ### Step 3: Restart ComfyUI
 - Restart ComfyUI if already open
