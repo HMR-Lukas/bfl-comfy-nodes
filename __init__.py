@@ -11,6 +11,10 @@ from .bfl_api import (
     FluxProDepthFinetune,
     FluxProFillFinetune,
     FluxUltra11Finetune,
+    Flux2Pro,
+    Flux2ProPreview,
+    Flux2Max,
+    Flux2Flex,
 )
 
 NODE_CLASS_MAPPINGS = {
@@ -26,4 +30,9 @@ NODE_CLASS_MAPPINGS = {
     "FLUX 1.0 [depth] Finetuned": FluxProDepthFinetune,
     "FLUX 1.0 [fill] Finetuned": FluxProFillFinetune,
     "FLUX 1.1 [ultra] Finetuned": FluxUltra11Finetune,
+
+    "FLUX.2 [pro]": Flux2Pro,
+    "FLUX.2 [pro] Preview": Flux2ProPreview,
+    "FLUX.2 [max]": Flux2Max,
+    "FLUX.2 [flex]": Flux2Flex,
 }
