@@ -17,6 +17,16 @@ from .bfl_api import (
     Flux2Flex,
 )
 
+from .bfl_credits import BFLCredits
+from .bfl_flux3 import (
+    Flux3TextToVideo,
+    Flux3ImageToVideo,
+    Flux3VideoContinuation,
+    Flux3DraftEnhance,
+    Flux3VideoLegacy,
+)
+
+
 NODE_CLASS_MAPPINGS = {
     "FLUX 1.0 [pro]": FluxPro,
     "FLUX 1.0 [dev]": FluxDev,
@@ -35,4 +45,26 @@ NODE_CLASS_MAPPINGS = {
     "FLUX.2 [pro] Preview": Flux2ProPreview,
     "FLUX.2 [max]": Flux2Max,
     "FLUX.2 [flex]": Flux2Flex,
+
+    # New dedicated FLUX 3 nodes, modelled after Comfy's official Partner Nodes.
+    "FLUX 3 Text to Video [BFL API]": Flux3TextToVideo,
+    "FLUX 3 Image to Video [BFL API]": Flux3ImageToVideo,
+    "FLUX 3 Video Continuation [BFL API]": Flux3VideoContinuation,
+    "FLUX 3 Draft Enhance [BFL API]": Flux3DraftEnhance,
+
+    # Keep old workflows loadable.
+    "FLUX 3 Video": Flux3VideoLegacy,
+
+    "BFL Credits": BFLCredits,
 }
+
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "FLUX 3 Text to Video [BFL API]": "FLUX 3 Text to Video [BFL API]",
+    "FLUX 3 Image to Video [BFL API]": "FLUX 3 Image to Video [BFL API]",
+    "FLUX 3 Video Continuation [BFL API]": "FLUX 3 Video Continuation [BFL API]",
+    "FLUX 3 Draft Enhance [BFL API]": "FLUX 3 Draft Enhance [BFL API]",
+    "FLUX 3 Video": "FLUX 3 Video (Legacy)",
+}
+
+WEB_DIRECTORY = "./js"
