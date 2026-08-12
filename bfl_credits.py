@@ -1,10 +1,6 @@
 import requests
 
-from .bfl_api import (
-    REQUEST_TIMEOUT_SECONDS,
-    FluxBase,
-    get_api_key,
-)
+from .bfl_common import REQUEST_TIMEOUT_SECONDS, FluxBase, get_api_key
 
 
 class BFLCredits:
@@ -18,7 +14,7 @@ class BFLCredits:
     RETURN_TYPES = ("FLOAT", "STRING")
     RETURN_NAMES = ("credits", "display")
     FUNCTION = "get_credits"
-    CATEGORY = "Flux/BFL Account"
+    CATEGORY = "Flux/Account"
     OUTPUT_NODE = True
 
     @classmethod

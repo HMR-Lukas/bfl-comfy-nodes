@@ -10,7 +10,7 @@ from PIL import Image
 
 from comfy_api.latest._input_impl.video_types import VideoFromFile
 
-from .bfl_api import REQUEST_TIMEOUT_SECONDS, get_api_key
+from .bfl_common import REQUEST_TIMEOUT_SECONDS, get_api_key
 
 
 FLUX3_ENDPOINT = "https://api.bfl.ai/v1/flux-3-video"
@@ -463,7 +463,7 @@ def _submit_and_poll(payload, api_key, estimate_text=None):
                     f"(${exact_cost / 100.0:.2f})"
                 )
 
-            return video, str(draft_cache_url), cost_text
+            return video, str(draft_cache_url), cost_text, exact_cost
 
         if status in {
             "Error",
@@ -516,11 +516,16 @@ class Flux3NodeBase:
         }
 
     @staticmethod
-    def _result(video, draft_cache_url, cost_text):
+    def _result(video, draft_cache_url, cost_text, exact_cost=None):
+        ui = {
+            "text": [cost_text],
+        }
+
+        if exact_cost is not None:
+            ui["bfl_cost"] = [float(exact_cost)]
+
         return {
-            "ui": {
-                "text": [cost_text],
-            },
+            "ui": ui,
             "result": (
                 video,
                 draft_cache_url,
@@ -530,7 +535,7 @@ class Flux3NodeBase:
 
 class Flux3TextToVideo(Flux3NodeBase):
     DESCRIPTION = (
-        "Direct BFL API. Generates video with synchronized audio from text. "
+        "Generates video with synchronized audio from text. "
         "Direct pricing: 17 credits/s at 720p or 29 credits/s at 1080p. "
         "Draft: 6 credits/s (HD). 1 credit = $0.01."
     )
@@ -627,18 +632,18 @@ class Flux3TextToVideo(Flux3NodeBase):
             draft,
         )
 
-        video, cache, cost_text = _submit_and_poll(
+        video, cache, cost_text, exact_cost = _submit_and_poll(
             payload,
             api_key,
             estimate_text=estimate,
         )
 
-        return self._result(video, cache, cost_text)
+        return self._result(video, cache, cost_text, exact_cost)
 
 
 class Flux3ImageToVideo(Flux3NodeBase):
     DESCRIPTION = (
-        "Direct BFL API. Animates 1-10 images. One image opens the clip; "
+        "Animates 1-10 images. One image opens the clip; "
         "two images become start/end; more can be spread through the clip "
         "or pinned to exact times. Direct pricing: 17 credits/s at 720p "
         "or 29 credits/s at 1080p. Draft: 6 credits/s (HD)."
@@ -650,7 +655,15 @@ class Flux3ImageToVideo(Flux3NodeBase):
             "required": {
                 # Required on purpose: this prevents the ambiguous None input
                 # that the previous all-in-one node could receive.
-                "image_0": ("IMAGE",),
+                "image_0": (
+                    "IMAGE",
+                    {
+                        "tooltip": (
+                            "Connect the IMAGE output of Load Image here. "
+                            "Load Image must be set to Mode → Always, not Bypass."
+                        ),
+                    },
+                ),
                 "prompt": (
                     "STRING",
                     {
@@ -821,18 +834,18 @@ class Flux3ImageToVideo(Flux3NodeBase):
             draft,
         )
 
-        video, cache, cost_text = _submit_and_poll(
+        video, cache, cost_text, exact_cost = _submit_and_poll(
             payload,
             api_key,
             estimate_text=estimate,
         )
 
-        return self._result(video, cache, cost_text)
+        return self._result(video, cache, cost_text, exact_cost)
 
 
 class Flux3VideoContinuation(Flux3NodeBase):
     DESCRIPTION = (
-        "Direct BFL API. Continues an existing video. "
+        "Continues an existing video. "
         "Direct pricing: 43 credits/s at 720p or 54 credits/s at 1080p. "
         "Draft: 12 credits/s (HD). Output length is 5-15 seconds."
     )
@@ -933,18 +946,18 @@ class Flux3VideoContinuation(Flux3NodeBase):
             draft,
         )
 
-        video_out, cache, cost_text = _submit_and_poll(
+        video_out, cache, cost_text, exact_cost = _submit_and_poll(
             payload,
             api_key,
             estimate_text=estimate,
         )
 
-        return self._result(video_out, cache, cost_text)
+        return self._result(video_out, cache, cost_text, exact_cost)
 
 
 class Flux3DraftEnhance:
     DESCRIPTION = (
-        "Direct BFL API. Renders a selected FLUX 3 draft at full quality "
+        "Renders a selected FLUX 3 draft at full quality "
         "without reinterpreting the shot. Connect draft_cache_url from a "
         "draft Text-to-Video, Image-to-Video or Video Continuation node. "
         "BFL does not currently publish a separate fixed per-second rate for "
@@ -1000,7 +1013,7 @@ class Flux3DraftEnhance:
             "draft_cache": draft_cache_b64,
         }
 
-        video, _cache, cost_text = _submit_and_poll(
+        video, _cache, cost_text, exact_cost = _submit_and_poll(
             payload,
             api_key,
             estimate_text=(
@@ -1009,15 +1022,20 @@ class Flux3DraftEnhance:
             ),
         )
 
+        ui = {
+            "text": [cost_text],
+        }
+
+        if exact_cost is not None:
+            ui["bfl_cost"] = [float(exact_cost)]
+
         return {
-            "ui": {
-                "text": [cost_text],
-            },
+            "ui": ui,
             "result": (video,),
         }
 
-
 class Flux3VideoLegacy(Flux3NodeBase):
+    DEPRECATED = True
     """
     Compatibility node for workflows created with the first version of this fork.
 
@@ -1136,7 +1154,7 @@ class Flux3VideoLegacy(Flux3NodeBase):
                     "No start image reached FLUX 3. "
                     "Your workflow may show a cable, but the upstream Load Image "
                     "node can still be bypassed. Set Load Image to Mode → Always. "
-                    "For new workflows use 'FLUX 3 Image to Video [BFL API]'."
+                    "For new workflows use 'FLUX 3 Image to Video'."
                 )
 
             return Flux3ImageToVideo().generate(
